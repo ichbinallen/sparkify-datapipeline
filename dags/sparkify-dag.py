@@ -8,17 +8,24 @@ from airflow.operators import (
 )
 from helpers import SqlQueries
 
-AWS_KEY = os.environ.get('AWS_KEY')
-AWS_SECRET = os.environ.get('AWS_SECRET')
+# AWS_KEY = os.environ.get('AWS_KEY')
+# AWS_SECRET = os.environ.get('AWS_SECRET')
 
 default_args = {
     'owner': 'udacity',
     'start_date': datetime(2019, 1, 12),
+    'depends_on_past': False,
+    'retries': 3,
+    'retry_delay': timedelta(minutes=3),
+    'email_on_failure': False
+    # 'dag.catchup' = False use option in dag instead
+    # see https://airflow.apache.org/docs/stable/scheduler.html#backfill-and-catchup
 }
 
 dag = DAG(
     'udac_example_dag',
     default_args=default_args,
+    catchup=False,
     description='Load and transform data in Redshift with Airflow',
     schedule_interval='0 * * * *'
 )
