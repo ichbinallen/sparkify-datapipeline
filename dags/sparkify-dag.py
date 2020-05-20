@@ -1,33 +1,33 @@
 from datetime import datetime, timedelta
-import os
+# import os
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
-from airflow.operators import (
-    StageToRedshiftOperator, LoadFactOperator,
-    LoadDimensionOperator, DataQualityOperator
-)
-from helpers import SqlQueries
+from airflow.operators import StageToRedshiftOperator
+# from airflow.operators import LoadFactOperator
+# from airflow.operators import LoadDimensionOperator
+# from airflow.operators import DataQualityOperator
+# from helpers import SqlQueries
 
 # AWS_KEY = os.environ.get('AWS_KEY')
 # AWS_SECRET = os.environ.get('AWS_SECRET')
 
 default_args = {
-    'owner': 'udacity',
+    'owner': 'allen',
     'start_date': datetime(2019, 1, 12),
     'depends_on_past': False,
-    'retries': 3,
-    'retry_delay': timedelta(minutes=3),
-    'email_on_failure': False
-    # 'dag.catchup' = False use option in dag instead
+    'retries': 0,  # set to 3 when done debuging
+    'retry_delay': timedelta(minutes=0),  # 3 when done debug
+    'email_on_failure': False,
+    'dag.catchup': False  # or use option in dag
     # see https://airflow.apache.org/docs/stable/scheduler.html#backfill-and-catchup
 }
 
 dag = DAG(
-    'udac_example_dag',
+    'sparkify-dag',
     default_args=default_args,
-    catchup=False,
-    description='Load and transform data in Redshift with Airflow',
-    schedule_interval='0 * * * *'
+    # catchup=False,
+    description='Load and transform data in Redshift with Airflow'  # ,
+    # schedule_interval='0 * * * *' #DONT FORGET COMMA ABOVE
 )
 
 start_operator = DummyOperator(
@@ -40,42 +40,44 @@ stage_events_to_redshift = StageToRedshiftOperator(
     dag=dag
 )
 
-stage_songs_to_redshift = StageToRedshiftOperator(
-    task_id='Stage_songs',
-    dag=dag
-)
+# stage_songs_to_redshift = StageToRedshiftOperator(
+#     task_id='Stage_songs',
+#     dag=dag
+# )
+#
+# load_songplays_table = LoadFactOperator(
+#     task_id='Load_songplays_fact_table',
+#     dag=dag
+# )
+#
+# load_user_dimension_table = LoadDimensionOperator(
+#     task_id='Load_user_dim_table',
+#     dag=dag
+# )
+#
+# load_song_dimension_table = LoadDimensionOperator(
+#     task_id='Load_song_dim_table',
+#     dag=dag
+# )
+#
+# load_artist_dimension_table = LoadDimensionOperator(
+#     task_id='Load_artist_dim_table',
+#     dag=dag
+# )
+#
+# load_time_dimension_table = LoadDimensionOperator(
+#     task_id='Load_time_dim_table',
+#     dag=dag
+# )
+#
+# run_quality_checks = DataQualityOperator(
+#     task_id='Run_data_quality_checks',
+#     dag=dag
+# )
+#
+# end_operator = DummyOperator(
+#     task_id='Stop_execution',
+#     dag=dag
+# )
 
-load_songplays_table = LoadFactOperator(
-    task_id='Load_songplays_fact_table',
-    dag=dag
-)
-
-load_user_dimension_table = LoadDimensionOperator(
-    task_id='Load_user_dim_table',
-    dag=dag
-)
-
-load_song_dimension_table = LoadDimensionOperator(
-    task_id='Load_song_dim_table',
-    dag=dag
-)
-
-load_artist_dimension_table = LoadDimensionOperator(
-    task_id='Load_artist_dim_table',
-    dag=dag
-)
-
-load_time_dimension_table = LoadDimensionOperator(
-    task_id='Load_time_dim_table',
-    dag=dag
-)
-
-run_quality_checks = DataQualityOperator(
-    task_id='Run_data_quality_checks',
-    dag=dag
-)
-
-end_operator = DummyOperator(
-    task_id='Stop_execution',
-    dag=dag
-)
+start_operator >> stage_events_to_redshift
