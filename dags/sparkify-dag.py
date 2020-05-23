@@ -18,7 +18,7 @@ default_args = {
     'retries': 0,  # set to 3 when done debuging
     'retry_delay': timedelta(minutes=0),  # 3 when done debug
     'email_on_failure': False,
-    'dag.catchup': False  # or use option in dag
+    'catchup': False  # or use option in dag
     # see https://airflow.apache.org/docs/stable/scheduler.html#backfill-and-catchup
 }
 
@@ -45,10 +45,15 @@ stage_events_to_redshift = StageToRedshiftOperator(
     s3_key="log_data"
 )
 
-# stage_songs_to_redshift = StageToRedshiftOperator(
-#     task_id='Stage_songs',
-#     dag=dag
-# )
+stage_songs_to_redshift = StageToRedshiftOperator(
+    task_id='Stage_songs',
+    dag=dag,
+    redshift_conn_id="redshift",
+    aws_credentials_id="aws_credentials",
+    table="staging_songs",
+    s3_bucket="udacity-dend",
+    s3_key="song_data"
+)
 #
 # load_songplays_table = LoadFactOperator(
 #     task_id='Load_songplays_fact_table',
@@ -86,3 +91,4 @@ stage_events_to_redshift = StageToRedshiftOperator(
 # )
 
 start_operator >> stage_events_to_redshift
+start_operator >> stage_songs_to_redshift
