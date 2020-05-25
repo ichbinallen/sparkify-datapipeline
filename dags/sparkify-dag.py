@@ -11,10 +11,49 @@ from airflow.operators import StageToRedshiftOperator
 # AWS_KEY = os.environ.get('AWS_KEY')
 # AWS_SECRET = os.environ.get('AWS_SECRET')
 
+
+# -----------------------------------------------------------------------------
+# ---- Testing Section
+# -----------------------------------------------------------------------------
+# from airflow.models import BaseOperator
+# from airflow.utils.decorators import apply_defaults
+#
+#
+# class LoadFactOperator(BaseOperator):
+#     ui_color = '#F98866'
+#     insert_statement = """
+#     INSERT INTO {} ({})
+#     {};
+#     """
+#
+#     @apply_defaults
+#     def __init__(self,
+#                  redshift_conn_id="",
+#                  table="",
+#                  columns="",
+#                  query="",
+#                  insert_mode="append",
+#                  *args, **kwargs):
+#         super(LoadFactOperator, self).__init__(*args, **kwargs)
+#         self.redshift_conn_id = redshift_conn_id
+#         self.table = table
+#         self.columns = columns
+#         self.query = query
+#         self.insert_mod = insert_mode
+#
+#     def execute(self, context):
+#         self.log.info('LoadFactOperator not implemented yet')
+
+# -----------------------------------------------------------------------------
+# ---- End Testing Section
+# -----------------------------------------------------------------------------
+
+
 default_args = {
     'owner': 'allen',
     'start_date': datetime(2019, 1, 12),
     'depends_on_past': False,
+    'max_active_runs': 1,
     'retries': 0,  # set to 3 when done debuging
     'retry_delay': timedelta(minutes=0),  # 3 when done debug
     'email_on_failure': False,
@@ -54,12 +93,17 @@ stage_songs_to_redshift = StageToRedshiftOperator(
     s3_bucket="udacity-dend",
     s3_key="song_data"
 )
-#
+
 # load_songplays_table = LoadFactOperator(
 #     task_id='Load_songplays_fact_table',
-#     dag=dag
+#     dag=dag,
+#     redshift_conn_id="redshift",
+#     table="songplays",
+#     columns="lomlan",
+#     query=SqlQueries.songplay_table_insert,
+#     insert_mode="append"
 # )
-#
+
 # load_user_dimension_table = LoadDimensionOperator(
 #     task_id='Load_user_dim_table',
 #     dag=dag
@@ -92,3 +136,5 @@ stage_songs_to_redshift = StageToRedshiftOperator(
 
 start_operator >> stage_events_to_redshift
 start_operator >> stage_songs_to_redshift
+# stage_events_to_redshift >> load_songplays_table
+# stage_songs_to_redshift >> load_songplays_table
