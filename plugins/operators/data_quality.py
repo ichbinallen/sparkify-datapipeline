@@ -11,18 +11,21 @@ class DataQualityOperator(BaseOperator):
     def __init__(
         self,
         redshift_conn_id='',
+        tables=[],
+        check_sql='SELECT COUNT(*) FROM %s',
         *args, **kwargs
     ):
         super(DataQualityOperator, self).__init__(*args, **kwargs)
         self.redshift_conn_id = redshift_conn_id
-        self.tables = ['songplays', 'users', 'songs', 'artists', 'time']
+        self.tables = tables
+        self.check_sql = check_sql
 
     def execute(self, context):
         redshift = PostgresHook(postgres_conn_id=self.redshift_conn_id)
 
         for table in self.tables:
             recs = redshift.get_records(
-                "SELECT COUNT(*) FROM {}".format(table)
+                self.check_sql.format(table)
             )
             if (len(recs) < 1) or (len(recs[0]) < 0):
                 self.log.error("table %s is empty".format(table))
