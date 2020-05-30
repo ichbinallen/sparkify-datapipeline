@@ -34,7 +34,7 @@ Schema ER diagram")
 
 
 ### DAG
-![DAG diagram}(./images/dag_diagram.png)
+![DAG diagram](./images/dag_diagram.png "DAG Diagram")
 
 ### Run Instructions
 Prerequisites:
