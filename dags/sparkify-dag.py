@@ -4,7 +4,7 @@ from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators import StageToRedshiftOperator
 from airflow.operators import LoadFactOperator
-# from airflow.operators import LoadDimensionOperator
+from airflow.operators import LoadDimensionOperator
 # from airflow.operators import DataQualityOperator
 from helpers import SqlQueries
 
@@ -65,25 +65,37 @@ load_songplays_table = LoadFactOperator(
     sql_statement=SqlQueries.songplay_table_insert
 )
 
-# load_user_dimension_table = LoadDimensionOperator(
-#     task_id='Load_user_dim_table',
-#     dag=dag
-# )
-#
-# load_song_dimension_table = LoadDimensionOperator(
-#     task_id='Load_song_dim_table',
-#     dag=dag
-# )
-#
-# load_artist_dimension_table = LoadDimensionOperator(
-#     task_id='Load_artist_dim_table',
-#     dag=dag
-# )
-#
-# load_time_dimension_table = LoadDimensionOperator(
-#     task_id='Load_time_dim_table',
-#     dag=dag
-# )
+load_user_dimension_table = LoadDimensionOperator(
+    task_id='Load_user_dim_table',
+    dag=dag,
+    table_name='users',
+    redshift_conn_id='redshift',
+    sql_statement=SqlQueries.user_table_insert
+)
+
+load_song_dimension_table = LoadDimensionOperator(
+    task_id='Load_song_dim_table',
+    dag=dag,
+    table_name='songs',
+    redshift_conn_id='redshift',
+    sql_statement=SqlQueries.song_table_insert
+)
+
+load_artist_dimension_table = LoadDimensionOperator(
+    task_id='Load_artist_dim_table',
+    dag=dag,
+    table_name='artists',
+    redshift_conn_id='redshift',
+    sql_statement=SqlQueries.artist_table_insert
+)
+
+load_time_dimension_table = LoadDimensionOperator(
+    task_id='Load_time_dim_table',
+    dag=dag,
+    table_name='time',
+    redshift_conn_id='time',
+    sql_statement=SqlQueries.time_table_insert
+)
 #
 # run_quality_checks = DataQualityOperator(
 #     task_id='Run_data_quality_checks',
