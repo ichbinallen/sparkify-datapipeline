@@ -34,10 +34,7 @@ Schema ER diagram")
 
 
 ### DAG
-<TODO>
-explain dag
-picture
-
+![DAG diagram}(./images/dag_diagram.png)
 
 ### Run Instructions
 Prerequisites:
