@@ -3,50 +3,13 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators import StageToRedshiftOperator
-# from airflow.operators import LoadFactOperator
+from airflow.operators import LoadFactOperator
 # from airflow.operators import LoadDimensionOperator
 # from airflow.operators import DataQualityOperator
-# from helpers import SqlQueries
+from helpers import SqlQueries
 
 # AWS_KEY = os.environ.get('AWS_KEY')
 # AWS_SECRET = os.environ.get('AWS_SECRET')
-
-
-# -----------------------------------------------------------------------------
-# ---- Testing Section
-# -----------------------------------------------------------------------------
-# from airflow.models import BaseOperator
-# from airflow.utils.decorators import apply_defaults
-#
-#
-# class LoadFactOperator(BaseOperator):
-#     ui_color = '#F98866'
-#     insert_statement = """
-#     INSERT INTO {} ({})
-#     {};
-#     """
-#
-#     @apply_defaults
-#     def __init__(self,
-#                  redshift_conn_id="",
-#                  table="",
-#                  columns="",
-#                  query="",
-#                  insert_mode="append",
-#                  *args, **kwargs):
-#         super(LoadFactOperator, self).__init__(*args, **kwargs)
-#         self.redshift_conn_id = redshift_conn_id
-#         self.table = table
-#         self.columns = columns
-#         self.query = query
-#         self.insert_mod = insert_mode
-#
-#     def execute(self, context):
-#         self.log.info('LoadFactOperator not implemented yet')
-
-# -----------------------------------------------------------------------------
-# ---- End Testing Section
-# -----------------------------------------------------------------------------
 
 
 default_args = {
@@ -54,19 +17,19 @@ default_args = {
     'start_date': datetime(2019, 1, 12),
     'depends_on_past': False,
     'max_active_runs': 1,
-    'retries': 0,  # set to 3 when done debuging
-    'retry_delay': timedelta(minutes=0),  # 3 when done debug
-    'email_on_failure': False,
-    'catchup': False  # or use option in dag
+    'retries': 3,  # set to 3 when done debuging
+    'retry_delay': timedelta(minutes=3),  # 3 when done debug
+    'email_on_failure': False
+    # 'catchup': False  # or use option in dag
     # see https://airflow.apache.org/docs/stable/scheduler.html#backfill-and-catchup
 }
 
 dag = DAG(
     'sparkify-dag',
     default_args=default_args,
-    # catchup=False,
-    description='Load and transform data in Redshift with Airflow'  # ,
-    # schedule_interval='0 * * * *' #DONT FORGET COMMA ABOVE
+    catchup=False,
+    description='Load and transform data in Redshift with Airflow',
+    schedule_interval='0 * * * *'
 )
 
 start_operator = DummyOperator(
@@ -94,15 +57,13 @@ stage_songs_to_redshift = StageToRedshiftOperator(
     s3_key="song_data"
 )
 
-# load_songplays_table = LoadFactOperator(
-#     task_id='Load_songplays_fact_table',
-#     dag=dag,
-#     redshift_conn_id="redshift",
-#     table="songplays",
-#     columns="lomlan",
-#     query=SqlQueries.songplay_table_insert,
-#     insert_mode="append"
-# )
+load_songplays_table = LoadFactOperator(
+    task_id='Load_songplays_fact_table',
+    dag=dag,
+    table_name='songplays',
+    redshift_conn_id='redshift_conn_id',
+    sql_statement=SqlQueries.songplay_table_insert
+)
 
 # load_user_dimension_table = LoadDimensionOperator(
 #     task_id='Load_user_dim_table',
@@ -136,5 +97,5 @@ stage_songs_to_redshift = StageToRedshiftOperator(
 
 start_operator >> stage_events_to_redshift
 start_operator >> stage_songs_to_redshift
-# stage_events_to_redshift >> load_songplays_table
-# stage_songs_to_redshift >> load_songplays_table
+stage_events_to_redshift >> load_songplays_table
+stage_songs_to_redshift >> load_songplays_table
